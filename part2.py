@@ -5,9 +5,6 @@ class Set:
     def set_training(self, filename):
         self.training = pd.read_table(filename, sep=' ', names=['words', 'tags'])
 
-    def set_dev(self, filename):
-        self.dev = pd.read_table(filename, names=['words'])
-
 
 class HMM:
     def __init__(self, training_dataset=None):
@@ -19,20 +16,16 @@ class HMM:
         self.training_set = training_dataset.data
 
     def count_y_to_x(self, x, y):
-        count = 0
-        for i in range(self.training_set.shape[0]):
-            word = self.training_set['words'][i]
-            tag = self.training_set['tags'][i]
-            if word == x and y == tag:
-                count += 1
+        df = self.training_set
+        df = df[df['words']==x]
+        df = df[df['tags']==y]
+        count = df.shape[0]
         return count
 
     def count_y(self, y):
-        count = 0
-        for i in range(self.training_set.shape[0]):
-            tag = self.training_set['tags'][i]
-            if y == tag:
-                count += 1
+        df = self.training_set
+        df = df[df['tags'] == y]
+        count = df.shape[0]
         return count
 
     def emission_params(self, x, y, k=0.5):
@@ -55,7 +48,6 @@ class HMM:
             x.append(word)
             params.append(probs)
 
-
         probs = []
         for tag in self.tags:
             e = self.emission_params('#UNK#',tag)
@@ -66,21 +58,30 @@ class HMM:
         df = pd.DataFrame({'words':x, 'params':params}, columns = ['words','params'])
         self.params = df
 
-    def generate_tag(self, words_df, output_filename=None):
+    def set_params(self, df):
+        self.params = df
+
+    def generate_tag(self, input_filename, output_filename=None):
         f = open(output_filename, 'w')
+        input_file = open(input_filename, 'r')
 
-        for i in range(words_df.shape[0]):
-            x = words_df['words'][i]
-            if x in self.words:
-                x1 = x
+        words = [x.strip() for x in input_file.readlines()]
+
+        for i in range(len(words)):
+            x = words[i]
+            if x == '':
+                f.write("\n")
             else:
-                x1 = '#UNK#'
-            row = self.params.loc[self.params['words']==x1]
-            probs = row['params'].values[0]
-            pos = np.argmax(probs)
-            y = self.tags[pos]
+                if x in self.words:
+                    x1 = x
+                else:
+                    x1 = '#UNK#'
+                row = self.params.loc[self.params['words']==x1]
+                probs = row['params'].values[0]
+                pos = np.argmax(probs)
+                y = self.tags[pos]
 
-            f.write("{} {}\n".format(x, y))
+                f.write("{} {}\n".format(x, y))
 
         f.close()
 
@@ -89,8 +90,14 @@ class HMM:
 
 d = Set()
 d.set_training('./EN/train')
-d.set_dev('./EN/dev.in')
 hmm = HMM(d)
-print(hmm.tags)
-hmm.train()
-hmm.generate_tag(d.dev, output_filename='./EN/dev.p2.out')
+
+## Uncomment to train model and save parameters
+# hmm.train()
+# hmm.params.to_pickle("./EN/params.pkl")
+
+## Uncomment to load trained parameters
+df = pd.read_pickle("./EN/params.pkl")
+hmm.set_params(df)
+
+hmm.generate_tag(input_filename="./EN/dev.in", output_filename='./EN/dev.p2.out')
