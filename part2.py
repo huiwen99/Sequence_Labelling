@@ -3,7 +3,23 @@ import numpy as np
 
 class Set:
     def set_training(self, filename):
-        self.training = pd.read_table(filename, sep=' ', names=['words', 'tags'])
+        f = open(filename, 'r', encoding='utf8')
+        lines = f.readlines()
+
+        words = []
+        tags = []
+
+        for line in lines:
+            if len(line) != 1:
+                word, tag = line.split()
+                words.append(word)
+                tags.append(tag)
+
+        words = np.array(words)
+        tags = np.array(tags)
+        df = pd.DataFrame({'words': words, 'tags': tags}, columns=['words', 'tags'])
+        self.training = df
+
 
 
 class HMM:
@@ -37,7 +53,7 @@ class HMM:
             e = num / den
         return e
 
-    def train(self):
+    def train_emi_params(self):
         x = []
         params = []
         for word in self.words:
@@ -56,14 +72,14 @@ class HMM:
         params.append(probs)
 
         df = pd.DataFrame({'words':x, 'params':params}, columns = ['words','params'])
-        self.params = df
+        self.emi_params = df
 
-    def set_params(self, df):
-        self.params = df
+    def set_emi_params(self, df):
+        self.emi_params = df
 
     def generate_tag(self, input_filename, output_filename=None):
-        f = open(output_filename, 'w')
-        input_file = open(input_filename, 'r')
+        f = open(output_filename, 'w', encoding="utf8")
+        input_file = open(input_filename, 'r', encoding="utf8")
 
         words = [x.strip() for x in input_file.readlines()]
 
@@ -76,7 +92,7 @@ class HMM:
                     x1 = x
                 else:
                     x1 = '#UNK#'
-                row = self.params.loc[self.params['words']==x1]
+                row = self.emi_params.loc[self.emi_params['words']==x1]
                 probs = row['params'].values[0]
                 pos = np.argmax(probs)
                 y = self.tags[pos]
@@ -89,15 +105,17 @@ class HMM:
 
 
 d = Set()
-d.set_training('./EN/train')
+d.set_training('./CN/train')
 hmm = HMM(d)
 
+print(hmm.tags)
+
 ## Uncomment to train model and save parameters
-# hmm.train()
-# hmm.params.to_pickle("./EN/params.pkl")
+hmm.train_emi_params()
+hmm.emi_params.to_pickle("./CN/params.pkl")
 
 ## Uncomment to load trained parameters
-df = pd.read_pickle("./EN/params.pkl")
-hmm.set_params(df)
+# df = pd.read_pickle("./CN/params.pkl")
+# hmm.set_emi_params(df)
 
-hmm.generate_tag(input_filename="./EN/dev.in", output_filename='./EN/dev.p2.out')
+hmm.generate_tag(input_filename="./CN/dev.in", output_filename='./CN/dev.p2.out')
