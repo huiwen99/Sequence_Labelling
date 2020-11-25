@@ -28,7 +28,8 @@ class Set:
 class HMM:
     def __init__(self, training_dataset=None):
         self.training_set = training_dataset.training
-        self.tags = (self.training_set.tags.unique()).append('S')
+        tg = self.training_set.tags.unique()
+        self.tags = np.append(tg, 'S')
         self.words = self.training_set.words.unique()
 
     def set_training_set(self, training_dataset):
@@ -59,22 +60,27 @@ class HMM:
 
     def train_trans_params(self):
         yparams = []
+        y = []
         for tag in self.tags:
             prob = []
+            given_prev_y = []
             for next_tag in self.tags:
                 q = self.trans_params(tag, next_tag)
                 prob.append(q)
+                given_prev_y.append(next_tag)
             yparams.append(prob)
+            y.append(given_prev_y)
 
-        x = []
-        for i in range(len(self.tags)-1):
-            pair = [self.words[i], self.words[i+1]]
-            x.append(pair)
-        y = []
-        for i in self.tags:
-            y.append(i)
+        # x = []
+        # for i in range(len(self.tags)-1):
+        #     pair = [self.words[i], self.words[i+1]]
+        #     x.append(pair)
+        # y = []
+        # for i in self.tags:
+        #     y.append(i)
 
-        df = pd.DataFrame({'words': x, 'tags:': y, 'y_params': yparams}, columns={'words', 'tags', 'y_params'})
+        df = pd.DataFrame({'tags:': y, 'y_params': yparams}, columns={'tags', 'y_params'})
+        # df = pd.DataFrame({'words': x, 'tags:': y, 'y_params': yparams}, columns={'words', 'tags', 'y_params'})
         self.transistion_params = df
 
     def set_params(self, dfx, dfy):
@@ -84,7 +90,7 @@ class HMM:
     def max_b(self, word):
         x = word
         if x == '':
-            max_b_val = 0
+            max_b_val = 1
         else:
             if x in self.words:
                 x1 = x
@@ -97,14 +103,13 @@ class HMM:
             # y = self.tags[pos]
         return max_b_val
 
-    def max_a(self, two_words):
-        x = two_words
-        if x in self.transistion_params['words']:
-            row = self.transistion_params.loc[self.transistion_params['words'] == x]
-            probs = row['y_params'].values[0]
-            pos = np.argmax(probs)
-            y = self.tags[pos]
-            return max(probs), y
+    def max_a(self, prev_y):
+        # if x in self.transistion_params['words']:
+        row = self.transistion_params.loc[self.transistion_params['tags'] == prev_y]
+        probs = row['y_params'].values[0]
+        pos = np.argmax(probs)
+        y = self.tags[pos]
+        return max(probs), y
 
     def viterbi(self, in_file, out_file):
         f_in = open(in_file, 'r')
@@ -126,11 +131,11 @@ class HMM:
                 pi_j = 1
                 for j in range(i, len(words) - 1):
                     b_score = self.max_b(words[j + 1])
-                    a_score, new_tag = self.max_a([words[j], words[j + 1]])
+                    a_score, new_tag = self.max_a(words[j])
                     pi_j = pi_j * b_score * a_score
                     gen_tag[j] = new_tag
 
-                last_score, stop_tag = self.max_a([words[len(words)], words[len(words) + 1]])
+                last_score, stop_tag = self.max_a(words[len(words)])
                 pi_n1 = pi_j * last_score
 
         new_tags = ['' if k == 'S' else k for k in gen_tag]
