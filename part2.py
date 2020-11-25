@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 class Set:
     def set_training(self, filename):
         f = open(filename, 'r', encoding='utf8')
@@ -21,7 +22,6 @@ class Set:
         self.training = df
 
 
-
 class HMM:
     def __init__(self, training_dataset=None):
         self.training_set = training_dataset.training
@@ -31,10 +31,11 @@ class HMM:
     def set_training_set(self, training_dataset):
         self.training_set = training_dataset.data
 
+    # To estimate the emission parameters
     def count_y_to_x(self, x, y):
         df = self.training_set
-        df = df[df['words']==x]
-        df = df[df['tags']==y]
+        df = df[df['words'] == x]
+        df = df[df['tags'] == y]
         count = df.shape[0]
         return count
 
@@ -45,7 +46,7 @@ class HMM:
         return count
 
     def emission_params(self, x, y, k=0.5):
-        if x=='#UNK#':
+        if x == '#UNK#':
             e = k / (self.count_y(y) + k)
         else:
             num = self.count_y_to_x(x, y)
@@ -66,17 +67,18 @@ class HMM:
 
         probs = []
         for tag in self.tags:
-            e = self.emission_params('#UNK#',tag)
+            e = self.emission_params('#UNK#', tag)
             probs.append(e)
         x.append('#UNK#')
         params.append(probs)
 
-        df = pd.DataFrame({'words':x, 'params':params}, columns = ['words','params'])
+        df = pd.DataFrame({'words': x, 'params': params}, columns=['words', 'params'])
         self.emi_params = df
 
     def set_emi_params(self, df):
         self.emi_params = df
 
+    # Generating the tag
     def generate_tag(self, input_filename, output_filename=None):
         f = open(output_filename, 'w', encoding="utf8")
         input_file = open(input_filename, 'r', encoding="utf8")
@@ -92,7 +94,7 @@ class HMM:
                     x1 = x
                 else:
                     x1 = '#UNK#'
-                row = self.emi_params.loc[self.emi_params['words']==x1]
+                row = self.emi_params.loc[self.emi_params['words'] == x1]
                 probs = row['params'].values[0]
                 pos = np.argmax(probs)
                 y = self.tags[pos]
@@ -102,20 +104,18 @@ class HMM:
         f.close()
 
 
-
-
 d = Set()
 d.set_training('./CN/train')
 hmm = HMM(d)
 
 print(hmm.tags)
 
-## Uncomment to train model and save parameters
+# Uncomment to train model and save parameters
 hmm.train_emi_params()
 hmm.emi_params.to_pickle("./CN/params.pkl")
 
-## Uncomment to load trained parameters
-# df = pd.read_pickle("./CN/params.pkl")
-# hmm.set_emi_params(df)
+# Uncomment to load trained parameters
+df = pd.read_pickle("./CN/params.pkl")
+hmm.set_emi_params(df)
 
 hmm.generate_tag(input_filename="./CN/dev.in", output_filename='./CN/dev.p2.out')
