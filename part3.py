@@ -15,6 +15,9 @@ class Set:
                 word, tag = line.split()
                 words.append(word)
                 tags.append(tag)
+            else:
+                tags.append('S')
+                words.append('\n')
 
         words = np.array(words)
         tags = np.array(tags)
@@ -24,8 +27,8 @@ class Set:
 
 class HMM:
     def __init__(self, training_dataset=None):
-        self.training_set = training_dataset.training  # Gives the df from above
-        self.tags = self.training_set.tags.unique()
+        self.training_set = training_dataset.training
+        self.tags = (self.training_set.tags.unique()).append('S')
         self.words = self.training_set.words.unique()
 
     def set_training_set(self, training_dataset):
@@ -90,27 +93,49 @@ class HMM:
             row = self.emission_params.loc[self.emission_params['words'] == x1]
             probs = row['params'].values[0]
             max_b_val = max(probs)
+            # pos = np.argmax(probs)
+            # y = self.tags[pos]
         return max_b_val
 
     def max_a(self, two_words):
         x = two_words
         if x in self.transistion_params['words']:
             row = self.transistion_params.loc[self.transistion_params['words'] == x]
-            probs = row['params'].values[0]
-            return max(probs)
+            probs = row['y_params'].values[0]
+            pos = np.argmax(probs)
+            y = self.tags[pos]
+            return max(probs), y
 
     def viterbi(self, in_file, out_file):
         f_in = open(in_file, 'r')
         f_out = open(out_file, 'w')
-        words = [x.strip() for x in f_in.readlines()]
+        # words = [x.strip() for x in f_in.readlines()]
+        words = ['\n']
+        lines = f_in.readlines()
+        for i in lines:
+            if i == '\n':
+                words.append(i)
+            else:
+                words.append(i.strip())
 
-        pi_j = 1
-        for i in range(len(words)-1):
-            b_score = self.max_b(words[i+1])
-            a_score = self.max_a([words[i], words[i+1]])
-            pi_j = pi_j * b_score * a_score
+        gen_tag = list(words)
 
-        pi_n1 = pi_j * self.max_a([words[len(words)], words[len(words)+1]])
+        for i in range(len(words)):
+            if words[i] == '\n':
+
+                pi_j = 1
+                for j in range(i, len(words) - 1):
+                    b_score = self.max_b(words[j + 1])
+                    a_score, new_tag = self.max_a([words[j], words[j + 1]])
+                    pi_j = pi_j * b_score * a_score
+                    gen_tag[j] = new_tag
+
+                last_score, stop_tag = self.max_a([words[len(words)], words[len(words) + 1]])
+                pi_n1 = pi_j * last_score
+
+        new_tags = ['' if k == 'S' else k for k in gen_tag]
+        for i, j in zip(f_in.readlines(), new_tags):
+            f_out.write('{} {}\n'.format(i, j))
 
 
 d = Set()
@@ -126,4 +151,4 @@ df_x = pd.read_pickle("./CN/params.pkl")
 df_y = pd.read_pickle("./CN/y_params.pkl")
 hmm.set_params(df_x, df_y)
 
-hmm.viterbi("./CN/dev.in", './CN/dev.p2.out')
+hmm.viterbi("./CN/dev.in", './CN/dev.p3.out')
