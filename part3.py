@@ -28,8 +28,9 @@ class Set:
 class HMM:
     def __init__(self, training_dataset=None):
         self.training_set = training_dataset.training
-        tg = self.training_set.tags.unique()
-        self.tags = np.append(tg, 'S')
+        # tg = self.training_set.tags.unique()
+        # self.tags = np.append(tg, 'S')
+        self.tags = self.training_set.tags.unique()
         self.words = self.training_set.words.unique()
 
     def set_training_set(self, training_dataset):
@@ -59,17 +60,25 @@ class HMM:
         return q
 
     def train_trans_params(self):
+        print(self.tags)
         yparams = []
         y = []
+        print('training...')
         for tag in self.tags:
+            print('each tag prob')
             prob = []
             given_prev_y = []
             for next_tag in self.tags:
+
                 q = self.trans_params(tag, next_tag)
+                print('next tag prob: ' + str(q))
                 prob.append(q)
-                given_prev_y.append([tag,next_tag])
+                print('appending probability')
+                # given_prev_y.append([tag, next_tag])
             yparams.append(prob)
-            y.append(given_prev_y)
+            print('appending list of probabilities for each tag: ' + str(prob))
+            y.append(str(tag))
+            print('appending tag(y): ' + tag)
 
         # x = []
         # for i in range(len(self.tags)-1):
@@ -78,14 +87,20 @@ class HMM:
         # y = []
         # for i in self.tags:
         #     y.append(i)
-
-        df = pd.DataFrame({'tags:': y, 'y_params': yparams}, columns={'tags', 'y_params'})
+        dicti = {'tags:': y, 'y_params': yparams}
+        print(dicti)
+        df = pd.DataFrame(dicti, columns={'tags', 'y_params'})
+        print('stored in dataframe\n')
+        print(df.values[0])
+        print(df)
         # df = pd.DataFrame({'words': x, 'tags:': y, 'y_params': yparams}, columns={'words', 'tags', 'y_params'})
         self.transi_params = df
+        print(df['tags'])
 
     def set_params(self, dfx, dfy):
         self.emission_params = dfx
         self.transistion_params = dfy
+        print(dfy['tags'])
 
     def max_b(self, word):
         x = word
@@ -160,8 +175,8 @@ class HMM:
         # for i in range(len(scores_list)-1, 0, -1):
         #     for j in range(len(scores_list[i])-1, 0, -1):
 
-        new_tags = ['' if k == 'S' else k for k in gen_tag]
-        for i, j in zip(f_in.readlines(), new_tags):
+        generated_tags = ['' if k == 'S' else k for k in newtags_list]
+        for i, j in zip(f_in.readlines(), generated_tags):
             f_out.write('{} {}\n'.format(i, j))
 
 
