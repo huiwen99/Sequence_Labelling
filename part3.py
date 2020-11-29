@@ -67,7 +67,7 @@ class HMM:
             for next_tag in self.tags:
                 q = self.trans_params(tag, next_tag)
                 prob.append(q)
-                given_prev_y.append(next_tag)
+                given_prev_y.append([tag,next_tag])
             yparams.append(prob)
             y.append(given_prev_y)
 
@@ -81,7 +81,7 @@ class HMM:
 
         df = pd.DataFrame({'tags:': y, 'y_params': yparams}, columns={'tags', 'y_params'})
         # df = pd.DataFrame({'words': x, 'tags:': y, 'y_params': yparams}, columns={'words', 'tags', 'y_params'})
-        self.transistion_params = df
+        self.transi_params = df
 
     def set_params(self, dfx, dfy):
         self.emission_params = dfx
@@ -101,15 +101,15 @@ class HMM:
             max_b_val = max(probs)
             # pos = np.argmax(probs)
             # y = self.tags[pos]
-        return max_b_val
+        return probs
 
     def max_a(self, prev_y):
         # if x in self.transistion_params['words']:
         row = self.transistion_params.loc[self.transistion_params['tags'] == prev_y]
         probs = row['y_params'].values[0]
-        pos = np.argmax(probs)
-        y = self.tags[pos]
-        return max(probs), y
+        # pos = np.argmax(probs)
+        # y = self.tags[pos]
+        return probs
 
     def viterbi(self, in_file, out_file):
         f_in = open(in_file, 'r')
@@ -124,19 +124,41 @@ class HMM:
                 words.append(i.strip())
 
         gen_tag = list(words)
+        newtags_list = []
 
         for i in range(len(words)):
             if words[i] == '\n':
-
+                scores = []
                 pi_j = 1
                 for j in range(i, len(words) - 1):
-                    b_score = self.max_b(words[j + 1])
-                    a_score, new_tag = self.max_a(words[j])
-                    pi_j = pi_j * b_score * a_score
-                    gen_tag[j] = new_tag
+                    a_probs = self.max_a(words[j])
+                    b_probs = self.max_b(words[j+1])
+                    ab = []
+                    for k, l in zip(a_probs, b_probs):
+                        ab.append(k*l)
+                    pi_j = pi_j * max(ab)
+                    pos = np.argmax(ab)
+                    new_tags = self.tags[pos]
+                    newtags_list.append(new_tags)
 
-                last_score, stop_tag = self.max_a(words[len(words)])
-                pi_n1 = pi_j * last_score
+                    # b_score = self.max_b(words[j + 1])
+                    # a_score = self.max_a(words[j])
+                    # pi_j = pi_j * b_score * a_score
+                    scores.append(pi_j)
+                    # gen_tag[j] = new_tag
+
+                    if words[j+1] == '\n':
+                        last_score = max(self.max_a(words[j + 1]))
+                        pi_n1 = pi_j * last_score
+                        scores.append(pi_n1)
+                        pos = np.argmax(self.max_a(words[j+1]))
+                        newtags_list.append(self.tags[pos])
+                        break
+
+            # scores_list.append(scores)
+
+        # for i in range(len(scores_list)-1, 0, -1):
+        #     for j in range(len(scores_list[i])-1, 0, -1):
 
         new_tags = ['' if k == 'S' else k for k in gen_tag]
         for i, j in zip(f_in.readlines(), new_tags):
@@ -149,7 +171,7 @@ hmm = HMM(d)
 
 # To train model and save parameters
 hmm.train_trans_params()
-hmm.transistion_params.to_pickle("./CN/y_params.pkl")
+hmm.transi_params.to_pickle("./CN/y_params.pkl")
 
 # Load trained parameters
 df_x = pd.read_pickle("./CN/params.pkl")

@@ -37,6 +37,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="full.screen.before.presentation.mode" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/part2.py" />
   </component>
   <component name="RunManager">
@@ -75,5 +76,11 @@
       <updated>1605694411834</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="-1203" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1606327385182">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1203" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.680/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1606327385182" />
   </component>
 </project>
