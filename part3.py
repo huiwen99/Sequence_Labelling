@@ -101,8 +101,8 @@ class HMM:
         return probs
 
     def viterbi(self, in_file, out_file):
-        f_in = open(in_file, 'r')
-        f_out = open(out_file, 'w')
+        f_in = open(in_file, 'r', encoding="utf-8")
+        f_out = open(out_file, 'w', encoding="utf-8")
         print('Viterbi running...')
 
         words = ['\n']
