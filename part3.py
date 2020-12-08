@@ -10,14 +10,20 @@ class Set:
         words = []
         tags = []
 
+        # for line in lines:
+        #     if len(line) != 1:
+        #         word, tag = line.split()
+        #         words.append(word)
+        #         tags.append(tag)
+        #     else:
+        #         tags.append('S')
+        #         words.append('\n')
+
         for line in lines:
             if len(line) != 1:
                 word, tag = line.split()
                 words.append(word)
                 tags.append(tag)
-            else:
-                tags.append('S')
-                words.append('\n')
 
         words = np.array(words)
         tags = np.array(tags)
@@ -100,9 +106,127 @@ class HMM:
 
         return probs
 
+    def get_sentence(self, in_file):
+        f_in = open(in_file, 'r', encoding="utf-8")
+        sentence = []
+        lines = f_in.readlines()
+
+        words = ['\n']
+        for line in lines:
+            if line == '\n':
+                words.append('\n')
+                sentence.append(words)
+                words = ['\n']
+            else:
+                words.append(line.strip())
+        f_in.close()
+        return sentence
+
+    def pi(self,k,v,x,stop=False):
+        if k==0:
+            if v=='S':
+                return 1
+            else:
+                return 0
+        else:
+            values = []
+            for i in range(self.transistion_params.tags.shape[0]):
+                u = self.transistion_params.tags[i]
+                value = self.pi_values_all_steps[k-1][i]
+
+                if stop==False:
+                    if v=='S':
+                        b=0
+                    else:
+
+                        df = self.emission_params
+                        emi = df.loc[df['words']==x]['params'].values[0]
+                        pos = list(self.tags).index(v)
+                        b = emi[pos]
+                else:
+                    b = 1
+
+                df = self.transistion_params
+                trans = df.loc[df['tags']==u]['y_params'].values[0]
+                pos = list(self.transistion_params.tags).index(v)
+                a = trans[pos]
+
+                value = value * a * b
+                values.append(value)
+            pi_value = max(values)
+            return pi_value
+
+    def find_tag(self,k,next_tag):
+        values = []
+        for v in self.transistion_params.tags:
+            pos = list(self.transistion_params.tags).index(v)
+            pi = self.pi_values_all_steps[k][pos]
+
+            df = self.transistion_params
+            trans = df.loc[df['tags'] == v]['y_params'].values[0]
+            pos = list(self.transistion_params.tags).index(next_tag)
+            a = trans[pos]
+
+            value = pi*a
+            values.append(value)
+        pos = np.argmax(values)
+        tag = self.transistion_params.iloc[pos].tags
+        return tag
+
+
+
+    def viterbi2(self, in_file, out_file):
+        sentences = self.get_sentence(in_file)
+        f_out = open(out_file, 'w', encoding="utf-8")
+
+        for sentence in sentences:
+            n = len(sentence)
+
+            ## forward pass
+            self.pi_values_all_steps = []
+
+            for k in range(n-1):
+                pi_values = []
+                x = sentence[k]
+                if x not in self.words:
+                    x = '#UNK#'
+                for v in self.transistion_params.tags:
+                    pi = self.pi(k,v,x)
+                    pi_values.append(pi)
+                self.pi_values_all_steps.append(pi_values)
+
+
+            # stop case
+            pi_values = []
+            for v in self.transistion_params.tags:
+                pi = self.pi(n-1, v, sentence[n-1], stop=True)
+                pi_values.append(pi)
+            self.pi_values_all_steps.append(pi_values)
+
+            ## backward pass
+
+            tags = ['S']
+            for k in range(n-2,-1,-1):
+                next_tag = tags[0]
+                tag = self.find_tag(k,next_tag)
+                tags.insert(0,tag)
+
+            sentence_to_write = sentence[1:-1]
+            tags_to_write = tags[1:-1]
+
+            for i in range(len(sentence_to_write)):
+                x = sentence_to_write[i]
+                y = tags_to_write[i]
+                f_out.write("{} {}\n".format(x, y))
+
+            f_out.write("\n")
+
+
+
+
     def viterbi(self, in_file, out_file):
         f_in = open(in_file, 'r', encoding="utf-8")
-        f_out = open(out_file, 'w', encoding="utf-8")
+        # f_out = open(out_file, 'w', encoding="utf-8")
         print('Viterbi running...')
 
         words = ['\n']
@@ -121,14 +245,20 @@ class HMM:
                 pi_j = 1
                 some_tag = 'S'
                 for j in range(i, len(words) - 1):
+
                     a_probs = self.max_a(some_tag)
                     b_probs = self.max_b(words[j+1])
+
+
                     ab = []
                     for k, l in zip(a_probs, b_probs):
                         ab.append(k*l)
                     pi_j = pi_j * max(ab)
+
                     pos = np.argmax(ab)
+                    print(words[j + 1], pos)
                     new_tag = self.tags[pos]
+                    print(words[j + 1], new_tag)
                     newtags_list.append(new_tag)
 
                     some_tag = new_tag
@@ -154,19 +284,25 @@ class HMM:
         # for i in to_write:
         #     f_out.write('{}\n'.format(i))
 
-        for i, j in zip(words[1:], generated_tags):
-            # f_out.write('{} {}\n'.format(i, j))
-            if i == '\n':
-                f_out.write('{}'.format(i))
-            else:
-                f_out.write('{} {}\n'.format(i, j))
 
-        f_out.close()
+        print(generated_tags)
+        # for i, j in zip(words[1:], generated_tags):
+        #     # f_out.write('{} {}\n'.format(i, j))
+        #     if i == '\n':
+        #         f_out.write('{}'.format(i))
+        #     else:
+        #         f_out.write('{} {}\n'.format(i, j))
+
+        # f_out.close()
         f_in.close()
 
 
 d = Set()
+<<<<<<< HEAD
+d.set_training('./SG/train')
+=======
 d.set_training('./EN/train')
+>>>>>>> 7329aa648e21e922dc8cfe0a91a656c8fea7d955
 hmm = HMM(d)
 
 # To train model and save parameters
@@ -174,8 +310,17 @@ hmm.train_trans_params()
 hmm.transi_params.to_pickle("./EN/y_params.pkl")
 
 # Load trained parameters
+<<<<<<< HEAD
+df_x = pd.read_pickle("./SG/params.pkl")
+df_y = pd.read_pickle("./SG/y_params.pkl")
+hmm.set_params(df_x, df_y)
+
+
+hmm.viterbi2("./SG/dev.in", './SG/dev.p3.out')
+=======
 df_x = pd.read_pickle("./EN/params.pkl")
 df_y = pd.read_pickle("./EN/y_params.pkl")
 hmm.set_params(df_x, df_y)
 
 hmm.viterbi("./EN/dev.in", './EN/dev.p3.out')
+>>>>>>> 7329aa648e21e922dc8cfe0a91a656c8fea7d955
