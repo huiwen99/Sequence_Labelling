@@ -10,14 +10,20 @@ class Set:
         words = []
         tags = []
 
-        # for line in lines:
-        #     if len(line) != 1:
-        #         word, tag = line.split()
-        #         words.append(word)
-        #         tags.append(tag)
-        #     else:
-        #         tags.append('S')
-        #         words.append('\n')
+        sword = []
+        stag = []
+        for line in lines:
+            if len(line) != 1:
+                word, tag = line.split()
+                sword.append(word)
+                stag.append(tag)
+            else:
+                stag.append('S')
+                sword.append('\n')
+        sword = np.array(sword)
+        stag = np.array(stag)
+        df_with_s = pd.DataFrame({'s_words': sword, 's_tags': stag}, columns={'s_words', 's_tags'})
+        self.training_with_s = df_with_s
 
         for line in lines:
             if len(line) != 1:
@@ -39,23 +45,27 @@ class HMM:
         self.tags = self.training_set.tags.unique()
         self.words = self.training_set.words.unique()
 
+        self.s_training_set = training_dataset.training_with_s
+        self.tags_with_s = self.s_training_set.s_tags.unique()
+
     def set_training_set(self, training_dataset):
-        self.training_set = training_dataset.data
+        self.training_set = training_dataset.training
+        self.s_training_set = training_dataset.training_with_s
 
     # To estimate the transition parameters
     def count_y_to_y(self, prev_y, y):
-        df = self.training_set
+        df = self.s_training_set
         count = 0
-        for i in range(len(df['tags']) - 1):
-            if df['tags'][i] == prev_y and df['tags'][i + 1] == y:
+        for i in range(len(df['s_tags']) - 1):
+            if df['s_tags'][i] == prev_y and df['s_tags'][i + 1] == y:
                 count += 1
         return count
 
     def count_prev_y(self, prev_y):
-        df = self.training_set
+        df = self.s_training_set
         count = 0
-        for i in range(len(df['tags'])):
-            if df['tags'][i] == prev_y:
+        for i in range(len(df['s_tags'])):
+            if df['s_tags'][i] == prev_y:
                 count += 1
         return count
 
@@ -70,10 +80,10 @@ class HMM:
         yparams = []
         y = []
         print('training...')
-        for tag in self.tags:
+        for tag in self.tags_with_s:
 
             prob = []
-            for next_tag in self.tags:
+            for next_tag in self.tags_with_s:
                 q = self.trans_params(tag, next_tag)
                 prob.append(q)
 
@@ -303,12 +313,12 @@ d.set_training('./SG/train')
 hmm = HMM(d)
 
 # To train model and save parameters
-# hmm.train_trans_params()
-# hmm.transi_params.to_pickle("./EN/sg_y_params.pkl")
+hmm.train_trans_params()
+hmm.transi_params.to_pickle("./SG/y_params.pkl")
 
 # Load trained parameters
 df_x = pd.read_pickle("./SG/params.pkl")
-df_y = pd.read_pickle("./SG/sg_y_params.pkl")
+df_y = pd.read_pickle("./SG/y_params.pkl")
 hmm.set_params(df_x, df_y)
 
 
