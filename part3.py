@@ -171,7 +171,7 @@ hmm = HMM(d)
 
 # To train model and save parameters
 hmm.train_trans_params()
-hmm.transi_params.to_pickle("./EN/y_params.pkl")
+hmm.transi_params.to_pickle("./EN/sg_y_params.pkl")
 
 # Load trained parameters
 df_x = pd.read_pickle("./EN/params.pkl")
