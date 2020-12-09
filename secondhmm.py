@@ -318,7 +318,7 @@ class HMM:
             phi = {}
             phi_args = {}
             n = len(sentence)
-            print(n)
+            # print(n)
             
             # Base:
             # phi(-1,'S') and phi(0,'S') = 1, (-1,T[s]) and (0,T[s]) = 0
@@ -334,13 +334,28 @@ class HMM:
                     phi[k_a] = 0
                     phi[k_b] = 0
 
-            # i think here needs to put the phi_args but idk
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
 
-            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            # "Base Case" of k=1
+            phi_base = {}
+            if sentence[1] not in self.words:
+                x = '#UNK#'
+                for w in range(len(T)):
+                    key = (1,T[w])
+                    phi_base[key] = self.prev_trans_params[('S',T[w])] * self.em_params[(x, T[w])]
+                    phi[key] = phi_base[key]
+                    phi_args[key] = (key[0], key[1], T[w])
+            else:
+                for w in range(len(T)):
+                    key = (1,T[w])
+                    phi_base[key] = self.prev_trans_params[('S',T[w])] * self.em_params[(sentence[1], T[w])]
+                    phi[key] = phi_base[key]
+                    phi_args[key] = (key[0], key[1], T[w])
+            # print(phi)
+            # Get max of this base
+
             # Forward recursive
-            # 1 <= k <= n??
-            # maybe 1 <= k <= n-2 (because n-1 is the end/stop case)
-            for k in range(1, n-2):
+            for k in range(2, n-2):
                 if sentence[k] not in self.words:
                     x = '#UNK#'
                 else:
@@ -353,7 +368,7 @@ class HMM:
                         for v in range(len(T)):
                             phi_value = phi[(k-1,T[v])]
                             if phi_value != 0:
-                                print(phi_value)
+                                # print(phi_value)
                                 a_value = self.trans_params[(T[u], T[v], T[w])]
                                 phi_a[(T[u],T[v])] = phi_value * a_value
                             else:
@@ -381,14 +396,21 @@ class HMM:
             # Back tracking
             y.append('S')
             # print(phi_args)
-            for i in range(n-2, -1,-1):
+            for i in range(n-2, 0,-1):
                 best_route = phi_args[(i,y[0])]
                 y.insert(0, best_route[1])
+                # print(y)
             y_pred.append(y)
+            # remove last s
+            # print(y)
+            del y[-1]
             # this break so that i just see the result of the first sentence for now
-            # break
+            
+            # element 0 and last element of sentence should be "forgotten"
+            x = sentence[1:len(sentence)-1]
             for i in range(len(y)):
-                f_out.write("{} {}\n".format(sentence[i], y[i]))
+                f_out.write("{} {}\n".format(x[i], y[i]))
+            f_out.write("\n")
 
         f_out.close()
         return y_pred
@@ -418,6 +440,8 @@ if __name__=="__main__":
     print("loading trans params")
     with open("./EN/trans_param_second.p", "rb") as fp:
         hmm.trans_params = pickle.load(fp)
+    with open("./EN/tr_dic.p", "rb") as fp:
+        hmm.prev_trans_params = pickle.load(fp)
 
     # Loading emm params (since it's the same)
     print("loading em params")
