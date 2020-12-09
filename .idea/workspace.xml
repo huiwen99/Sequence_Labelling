@@ -38,7 +38,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="full.screen.before.presentation.mode" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/part2.py" />
+    <property name="last_opened_file_path" value="$USER_HOME$/OneDrive - Singapore University of Technology and Design/SUTD/Term 6/Foundations of Cybersecurity/CTF project/CTF_Draft" />
   </component>
   <component name="RunManager">
     <configuration name="part2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
@@ -82,5 +82,9 @@
       <screen x="-1920" y="0" width="1920" height="1040" />
     </state>
     <state x="-1203" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.680/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1606327385182" />
+    <state x="-1180" y="275" key="FileChooserDialogImpl" timestamp="1607496079587">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1180" y="275" key="FileChooserDialogImpl/0.0.1280.680/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1607496079587" />
   </component>
 </project>

@@ -10,14 +10,20 @@ class Set:
         words = []
         tags = []
 
-        # for line in lines:
-        #     if len(line) != 1:
-        #         word, tag = line.split()
-        #         words.append(word)
-        #         tags.append(tag)
-        #     else:
-        #         tags.append('S')
-        #         words.append('\n')
+        sword = []
+        stag = []
+        for line in lines:
+            if len(line) != 1:
+                word, tag = line.split()
+                sword.append(word)
+                stag.append(tag)
+            else:
+                stag.append('S')
+                sword.append('\n')
+        sword = np.array(sword)
+        stag = np.array(stag)
+        df_with_s = pd.DataFrame({'s_words': sword, 's_tags': stag}, columns={'s_words', 's_tags'})
+        self.training_with_s = df_with_s
 
         for line in lines:
             if len(line) != 1:
@@ -39,23 +45,27 @@ class HMM:
         self.tags = self.training_set.tags.unique()
         self.words = self.training_set.words.unique()
 
+        self.s_training_set = training_dataset.training_with_s
+        self.tags_with_s = self.s_training_set.s_tags.unique()
+
     def set_training_set(self, training_dataset):
-        self.training_set = training_dataset.data
+        self.training_set = training_dataset.training
+        self.s_training_set = training_dataset.training_with_s
 
     # To estimate the transition parameters
     def count_y_to_y(self, prev_y, y):
-        df = self.training_set
+        df = self.s_training_set
         count = 0
-        for i in range(len(df['tags']) - 1):
-            if df['tags'][i] == prev_y and df['tags'][i + 1] == y:
+        for i in range(len(df['s_tags']) - 1):
+            if df['s_tags'][i] == prev_y and df['s_tags'][i + 1] == y:
                 count += 1
         return count
 
     def count_prev_y(self, prev_y):
-        df = self.training_set
+        df = self.s_training_set
         count = 0
-        for i in range(len(df['tags'])):
-            if df['tags'][i] == prev_y:
+        for i in range(len(df['s_tags'])):
+            if df['s_tags'][i] == prev_y:
                 count += 1
         return count
 
@@ -70,10 +80,10 @@ class HMM:
         yparams = []
         y = []
         print('training...')
-        for tag in self.tags:
+        for tag in self.tags_with_s:
 
             prob = []
-            for next_tag in self.tags:
+            for next_tag in self.tags_with_s:
                 q = self.trans_params(tag, next_tag)
                 prob.append(q)
 
@@ -86,25 +96,6 @@ class HMM:
     def set_params(self, dfx, dfy):
         self.emission_params = dfx
         self.transistion_params = dfy
-
-    def max_b(self, word):
-        x = word
-
-        if x in self.words:
-            x1 = x
-        else:
-            x1 = '#UNK#'
-
-        row = self.emission_params.loc[self.emission_params['words'] == x1]
-        probs = row['params'].values[0]
-
-        return probs
-
-    def max_a(self, prev_y):
-        row = self.transistion_params.loc[self.transistion_params['tags'] == prev_y]
-        probs = row['y_params'].values[0]
-
-        return probs
 
     def get_sentence(self, in_file):
         f_in = open(in_file, 'r', encoding="utf-8")
@@ -173,8 +164,6 @@ class HMM:
         tag = self.transistion_params.iloc[pos].tags
         return tag
 
-
-
     def viterbi2(self, in_file, out_file):
         sentences = self.get_sentence(in_file)
         f_out = open(out_file, 'w', encoding="utf-8")
@@ -222,81 +211,6 @@ class HMM:
             f_out.write("\n")
 
 
-
-
-    def viterbi(self, in_file, out_file):
-        f_in = open(in_file, 'r', encoding="utf-8")
-        # f_out = open(out_file, 'w', encoding="utf-8")
-        print('Viterbi running...')
-
-        words = ['\n']
-        lines = f_in.readlines()
-        for i in lines:
-            if i == '\n':
-                words.append(i)
-            else:
-                words.append(i.strip())
-
-        newtags_list = []
-
-        for i in range(len(words)):
-            if words[i] == '\n':
-                scores = []
-                pi_j = 1
-                some_tag = 'S'
-                for j in range(i, len(words) - 1):
-
-                    a_probs = self.max_a(some_tag)
-                    b_probs = self.max_b(words[j+1])
-
-
-                    ab = []
-                    for k, l in zip(a_probs, b_probs):
-                        ab.append(k*l)
-                    pi_j = pi_j * max(ab)
-
-                    pos = np.argmax(ab)
-                    print(words[j + 1], pos)
-                    new_tag = self.tags[pos]
-                    print(words[j + 1], new_tag)
-                    newtags_list.append(new_tag)
-
-                    some_tag = new_tag
-                    scores.append(pi_j)
-
-                    if words[j+2] == '\n':
-                        last_score = max(self.max_a(some_tag))
-                        pi_n1 = pi_j * last_score
-                        scores.append(pi_n1)
-                        pos = np.argmax(self.max_a(some_tag))
-                        newtags_list.append(self.tags[pos])
-                        break
-
-        generated_tags = ['' if k == 'S' else k for k in newtags_list]
-        # new_list = []
-        # to_write = []
-        # for i, j in zip(words[1:-1], generated_tags):
-        #     new_list.append('{} {}'.format(i, j))
-        # for k in new_list:
-        #     if k != ' ':
-        #         to_write.append(k)
-        #
-        # for i in to_write:
-        #     f_out.write('{}\n'.format(i))
-
-
-        print(generated_tags)
-        # for i, j in zip(words[1:], generated_tags):
-        #     # f_out.write('{} {}\n'.format(i, j))
-        #     if i == '\n':
-        #         f_out.write('{}'.format(i))
-        #     else:
-        #         f_out.write('{} {}\n'.format(i, j))
-
-        # f_out.close()
-        f_in.close()
-
-
 d = Set()
 d.set_training('./SG/train')
 
@@ -304,11 +218,11 @@ hmm = HMM(d)
 
 # To train model and save parameters
 # hmm.train_trans_params()
-# hmm.transi_params.to_pickle("./EN/sg_y_params.pkl")
+# hmm.transi_params.to_pickle("./SG/y_params.pkl")
 
 # Load trained parameters
 df_x = pd.read_pickle("./SG/params.pkl")
-df_y = pd.read_pickle("./SG/sg_y_params.pkl")
+df_y = pd.read_pickle("./SG/y_params.pkl")
 hmm.set_params(df_x, df_y)
 
 
