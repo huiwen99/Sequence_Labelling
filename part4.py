@@ -160,7 +160,8 @@ class HMM:
     def convert_param(self):
         # Convert DataFrame to Dictionary
         T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-        
+        # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+
         # Convert transition param
         t_param_dic = {}
         for tag_from in T:
@@ -178,6 +179,7 @@ class HMM:
         for w in words:
             # to skip 'S'
             T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            # T_temp = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
             for tag in T_temp:
                 key = (w, tag)
                 row = self.emission_params.loc[self.emission_params['words'] == w]
@@ -188,6 +190,7 @@ class HMM:
 
     def default_param(self):
         T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+        # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
         default = {}
         for tag in T:
             default[tag] = 0.5/float(self.count_y(tag) + 0.5)
@@ -195,6 +198,7 @@ class HMM:
 
     def viterbi_kbest(self,file_out="./EN/dev.p4.out", k=3):
         T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+        # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
         y_pred = []
         default = self.default_param()
 
@@ -247,8 +251,7 @@ class HMM:
                         if len(y[i - 1][s_fr]) == 1:
                             if k_em not in self.em_param_dic:
                                 if self.tr_param_dic[k_tr] != 0:
-                                    score = float(y[i - 1][s_fr][0][3]) + m.log(
-                                        float(default[T[s_to]])) + m.log(float(self.tr_param_dic[k_tr]))
+                                    score = float(y[i - 1][s_fr][0][3]) + m.log(float(default[T[s_to]])) + m.log(float(self.tr_param_dic[k_tr]))
                                 else:
                                     score = -100000000
                             else:
@@ -313,12 +316,13 @@ class HMM:
             y_pred_label = []
 
             T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'S', 9: 'B-SBAR', 10: 'I-VP', 11: 'I-ADVP', 12: 'B-PRT', 13: 'I-PP', 14: 'B-CONJP', 15: 'I-CONJP', 16: 'B-INTJ', 17: 'I-INTJ', 18: 'I-SBAR', 19: 'B-UCP', 20: 'I-UCP', 21: 'B-LST'}
+            # T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'S', 4:'B-positive', 5:'I-positive', 6:'B-negative', 7:'I-negative'}
             for i in range(len(y_pred_num) -1, -1, -1):
                 y = T_dict[y_pred_num[i]]
                 y_pred_label.append(y)
             y_pred.append(y_pred_label)
 
-        with open(file_out, "w") as f_out:
+        with open(file_out, "w", encoding="utf-8") as f_out:
             for i in range(len(self.words)):
                 x_i = self.words[i]
                 y_i = y_pred[i]
@@ -346,13 +350,13 @@ if __name__=="__main__":
 
     # 3. Transform em and tr param for ease of access
     print("Creating dictionary of parameters")
-    # hmm.convert_param()
+    hmm.convert_param()
 
-    # 3.a Saving Params
-    # with open("em_dic.p", "wb") as fp:
+    # # 3.a Saving Params
+    # with open("./EN/em_dic.p", "wb") as fp:
     #     pickle.dump(hmm.em_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-    # with open("tr_dic.p", "wb") as fp:
+    # with open("./EN/tr_dic.p", "wb") as fp:
     #     pickle.dump(hmm.tr_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     # 3.b Loading params
