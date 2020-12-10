@@ -361,7 +361,7 @@ class HMM:
 
 
         print("writing file")
-        with open("./EN/test.out", "w", encoding="utf-8") as f_out:
+        with open("./EN/dev.p5.out", "w", encoding="utf-8") as f_out:
             for i in range(len(self.words)):
                 x_i = self.words[i]
                 y_i = y_predict[i]

@@ -212,18 +212,18 @@ class HMM:
 
 
 d = Set()
-d.set_training('./SG/train')
+d.set_training('./EN/train')
 
 hmm = HMM(d)
 
 # To train model and save parameters
-# hmm.train_trans_params()
-# hmm.transi_params.to_pickle("./SG/y_params.pkl")
+hmm.train_trans_params()
+hmm.transi_params.to_pickle("./EN/y_params.pkl")
 
 # Load trained parameters
-df_x = pd.read_pickle("./SG/params.pkl")
-df_y = pd.read_pickle("./SG/y_params.pkl")
+df_x = pd.read_pickle("./EN/params.pkl")
+df_y = pd.read_pickle("./EN/y_params.pkl")
 hmm.set_params(df_x, df_y)
 
 
-hmm.viterbi2("./SG/dev.in", './SG/dev.p3.out')
+hmm.viterbi2("./EN/dev.in", './EN/dev.p3.out')
