@@ -342,7 +342,7 @@ class HMM:
 
 
 if __name__=="__main__":
-    if len(sys.argv < 3):
+    if len(sys.argv) < 3:
         print("Make sure at least python 3.8 is installed")
         print("Run the file in this format")
         print("python part4.py [dataset] [mode]")

@@ -104,7 +104,7 @@ class HMM:
         f.close()
 
 if __name__=="__main__":
-    if len(sys.argv < 3):
+    if len(sys.argv) < 3:
         print("Make sure at least python 3.8 is installed")
         print("Run the file in this format")
         print("python part2.py [dataset] [mode]")
@@ -115,12 +115,11 @@ if __name__=="__main__":
         dataset = sys.argv[1]
         mode = sys.argv[2]
 
-        hmm.dataset = dataset
-
         d = Set()
         d.set_training('./{}/train'.format(dataset))
         hmm = HMM(d)
-
+        hmm.dataset = dataset
+        
         if mode == "train":
             print("Training parameters")
             hmm.train_emi_params()
