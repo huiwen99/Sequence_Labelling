@@ -45,8 +45,7 @@ Where `[dataset]` can be EN, SG, or CN.
 The dictionary for emission parameters is saved as ```em_dic.p``` and the dictionary for transition parameters is saved as ```tr_dic.p```.
 
 To output the 3rd best sequence, run the following:
-```python3 part4.py [dataset] predict```  
-Where `[dataset]` can be EN, SG, or CN.
+```python3 part4.py EN predict```  
 
 The output file is saved as ```dev.p4.out``` in the EN folder.
 
@@ -61,7 +60,6 @@ Where `[dataset]` can be EN, SG, or CN.
 The dictionary for emission parameters is saved as ```em_dic.p``` and the dictionary for transition parameters is saved as ```tr_dic.p```.
 
 To output the 3rd best sequence, run the following:
-```python3 part5.py [dataset] predict```  
-Where `[dataset]` can be EN, SG, or CN.
+```python3 part5.py EN predict```  
 
 The output file is saved as ```dev.p5.out``` in the EN folder.
