@@ -361,7 +361,7 @@ class HMM:
 
 
         print("writing file")
-        with open("./EN/dev.p5.out", "w", encoding="utf-8") as f_out:
+        with open("./EN/test.p5.out", "w", encoding="utf-8") as f_out:
             for i in range(len(self.words)):
                 x_i = self.words[i]
                 y_i = y_predict[i]
@@ -379,7 +379,7 @@ if __name__=="__main__":
 
     # 1. prepare x /EN/dev.in
     print("Setting word list")
-    hmm.set_word_list("./EN/dev.in")
+    hmm.set_word_list("./EN/test.in")
     
     # 2. em param and trans param
     print("Loading emission and transition parameters")
