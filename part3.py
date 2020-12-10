@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import sys
 
 class Set:
     def set_training(self, filename):
@@ -211,19 +211,43 @@ class HMM:
             f_out.write("\n")
 
 
+if __name__=="__main__":
+    if len(sys.argv < 3):
+        print("Make sure at least python 3.8 is installed")
+        print("Run the file in this format")
+        print("python part2.py [dataset] [mode]")
+        print("dataset can be EN,SG,CN") # sys.argv[1]
+        print("mode can be train or predict") # sys.argv[2]
+
+    else:
+        dataset = sys.argv[1]
+        mode = sys.argv[2]
+
+        hmm.dataset = dataset
+
+        d = Set()
+        d.set_training('./{}/train'.format(dataset))
+        hmm = HMM(d)
+
+        if mode == "train":
+            print("Training parameters")
+            hmm.train_trans_params()
+            hmm.transi_params.to_pickle("./{}/y_params.pkl".format(dataset))
+            print("Parameters is saved to ./{}/y_params.pkl".format(dataset))
+
+        elif mode == "predict":
+            print("Loading parameters")
+            try:
+                df_x = pd.read_pickle("./{}/params.pkl".format(dataset))
+                df_y = pd.read_pickle("./{}/y_params.pkl".format(dataset))
+                hmm.set_params(df_x, df_y)
+            except:
+                print("Parameters file can't be found, make sure to run in train mode first, and make sure parameter file from part 2 exist")
+
+            print("Running viterbi")
+            hmm.viterbi2("./{}/dev.in".format(dataset), './{}/dev.p3.out'.format(dataset))
+
 d = Set()
 d.set_training('./SG/train')
 
 hmm = HMM(d)
-
-# To train model and save parameters
-# hmm.train_trans_params()
-# hmm.transi_params.to_pickle("./SG/y_params.pkl")
-
-# Load trained parameters
-df_x = pd.read_pickle("./SG/params.pkl")
-df_y = pd.read_pickle("./SG/y_params.pkl")
-hmm.set_params(df_x, df_y)
-
-
-hmm.viterbi2("./SG/dev.in", './SG/dev.p3.out')

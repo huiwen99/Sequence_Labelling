@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math as m
 import pickle
+import sys
 
 
 class Set:
@@ -196,11 +197,17 @@ class HMM:
             default[tag] = 0.5/float(self.count_y(tag) + 0.5)
         return default
 
-    def viterbi_kbest(self,file_out="./EN/dev.p4.out", k=3, select=-1):
+    def viterbi_kbest(self, k=3, select=-1):
         if select==-1:
             select = k-1
-        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-        # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        
+        T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'S', 4:'B-positive', 5:'I-positive', 6:'B-negative', 7:'I-negative'}
+
+        if self.dataset == "EN":
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'S', 9: 'B-SBAR', 10: 'I-VP', 11: 'I-ADVP', 12: 'B-PRT', 13: 'I-PP', 14: 'B-CONJP', 15: 'I-CONJP', 16: 'B-INTJ', 17: 'I-INTJ', 18: 'I-SBAR', 19: 'B-UCP', 20: 'I-UCP', 21: 'B-LST'}
+
         y_pred = []
         default = self.default_param()
 
@@ -318,24 +325,14 @@ class HMM:
             y_pred_num.append(y1)
             y_pred_label = []
 
-            T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'S', 9: 'B-SBAR', 10: 'I-VP', 11: 'I-ADVP', 12: 'B-PRT', 13: 'I-PP', 14: 'B-CONJP', 15: 'I-CONJP', 16: 'B-INTJ', 17: 'I-INTJ', 18: 'I-SBAR', 19: 'B-UCP', 20: 'I-UCP', 21: 'B-LST'}
-            # T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'S', 4:'B-positive', 5:'I-positive', 6:'B-negative', 7:'I-negative'}
             for i in range(len(y_pred_num) -1, -1, -1):
                 y = T_dict[y_pred_num[i]]
                 y_pred_label.append(y)
             y_pred.append(y_pred_label)
-
-        # with open(file_out, "w", encoding="utf-8") as f_out:
-        #     for i in range(len(self.words)):
-        #         x_i = self.words[i]
-        #         y_i = y_pred[i]
-        #         for j in range(len(x_i)):
-        #             f_out.write("{} {}\n".format(x_i[j], y_i[j]))
-        #         f_out.write("\n")
         
         return y_pred
 
-    def part_5(self, k=5):
+    def part_5(self, k=3, file_name="./dev.p5.out"):
         y = []
         y_predict = []
         weights = []
@@ -344,7 +341,7 @@ class HMM:
 
         for select in range(k):
             print(select)
-            y.append(self.viterbi_kbest("./EN/test.out", k, select))
+            y.append(self.viterbi_kbest(k, select))
 
         for m in range(len(y[0])):
             ym_predict = []
@@ -360,8 +357,8 @@ class HMM:
             y_predict.append(ym_predict)
 
 
-        print("writing file")
-        with open("./EN/test.out", "w", encoding="utf-8") as f_out:
+        # print("writing file")
+        with open(file_name, "w", encoding="utf-8") as f_out:
             for i in range(len(self.words)):
                 x_i = self.words[i]
                 y_i = y_predict[i]
@@ -373,41 +370,57 @@ class HMM:
 
 
 if __name__=="__main__":
-    d = Set()
-    d.set_training('./EN/train')
-    hmm = HMM(d)
+    if len(sys.argv < 3):
+        print("Make sure at least python 3.8 is installed")
+        print("Run the file in this format")
+        print("python part5.py [dataset] [mode]")
+        print("dataset can be EN,SG,CN") # sys.argv[1]
+        print("mode can be train or predict") # sys.argv[2]
 
-    # 1. prepare x /EN/dev.in
-    print("Setting word list")
-    hmm.set_word_list("./EN/dev.in")
-    
-    # 2. em param and trans param
-    print("Loading emission and transition parameters")
-    dfx = pd.read_pickle("./EN/params.pkl")
-    dfy = pd.read_pickle("./EN/y_params.pkl")
-    hmm.set_params(dfx, dfy)
+    else:
+        dataset = sys.argv[1]
+        mode = sys.argv[2]
 
-    # 3. Transform em and tr param for ease of access
-    print("Creating dictionary of parameters")
-    # hmm.convert_param()
+        d = Set()
+        d.set_training('./{}/train'.format(dataset))
+        hmm = HMM(d)
+        hmm.dataset = dataset
 
-    # # 3.a Saving Params
-    # with open("./EN/em_dic.p", "wb") as fp:
-    #     pickle.dump(hmm.em_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        # 1. prepare x /EN/dev.in
+        print("Setting word list")
+        hmm.set_word_list("./{}/dev.in".format(dataset))
+        
+        # 2. em param and trans param
+        print("Loading emission and transition parameters")
+        try:
+            dfx = pd.read_pickle("./{}/params.pkl".format(dataset))
+            dfy = pd.read_pickle("./{}/y_params.pkl".format(dataset))
+            hmm.set_params(dfx, dfy)
+        except:
+            print("Parameters file not found, make sure to run part2.py and part3.py in train mode to generate the parameters file")
 
-    # with open("./EN/tr_dic.p", "wb") as fp:
-    #     pickle.dump(hmm.tr_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        if mode == "train":
+            # 3. Transform em and tr param for ease of access
+            print("Creating dictionary of parameters")
+            hmm.convert_param()
 
-    # 3.b Loading params
-    with open("./EN/em_dic.p", "rb") as fp:
-        hmm.em_param_dic = pickle.load(fp)
+            # 3.a Saving Params
+            with open("./{}/em_dic.p".format(dataset), "wb") as fp:
+                pickle.dump(hmm.em_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open("./EN/tr_dic.p", "rb") as fp:
-        hmm.tr_param_dic = pickle.load(fp)
+            with open("./{}/tr_dic.p".format(dataset), "wb") as fp:
+                pickle.dump(hmm.tr_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        elif mode == "predict":
+            # 3.b Loading params
+            with open("./{}/em_dic.p".format(dataset), "rb") as fp:
+                hmm.em_param_dic = pickle.load(fp)
 
-    # 4. Run viterbi top 3 best
-    # print("Running viterbi k best")
-    # y_rped = hmm.viterbi_kbest()
+            with open("./{}/tr_dic.p".format(dataset), "rb") as fp:
+                hmm.tr_param_dic = pickle.load(fp)
 
-    # Do part 5
-    y_pred_part5 = hmm.part_5(4)
+            # 4. Do part 5
+            print("Doing part 5 with k=3")
+            filename = "./{}/dev.p5.out".format(dataset)
+            y_pred_part5 = hmm.part_5(3, filename)
+            print("Output is saved to {}".format(filename))

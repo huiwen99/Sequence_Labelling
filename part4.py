@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math as m
 import pickle
+import sys
 
 
 class Set:
@@ -159,9 +160,13 @@ class HMM:
 
     def convert_param(self):
         # Convert DataFrame to Dictionary
-        # T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
         T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T_temp = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
 
+        if self.dataset == "EN":
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            
         # Convert transition param
         t_param_dic = {}
         for tag_from in T:
@@ -178,8 +183,6 @@ class HMM:
         words = self.emission_params['words'].values
         for w in words:
             # to skip 'S'
-            # T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-            T_temp = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
             for tag in T_temp:
                 key = (w, tag)
                 row = self.emission_params.loc[self.emission_params['words'] == w]
@@ -189,16 +192,23 @@ class HMM:
         self.em_param_dic = e_param_dic
 
     def default_param(self):
-        # T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
         T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        if self.dataset == "EN":
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+        
         default = {}
         for tag in T:
             default[tag] = 0.5/float(self.count_y(tag) + 0.5)
         return default
 
-    def viterbi_kbest(self,file_out="./SG/dev.p4.out", k=3):
-        # T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+    def viterbi_kbest(self,file_out="./dev.p4.out", k=3):
         T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'S', 4:'B-positive', 5:'I-positive', 6:'B-negative', 7:'I-negative'}
+
+        if self.dataset == "EN":
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'S', 9: 'B-SBAR', 10: 'I-VP', 11: 'I-ADVP', 12: 'B-PRT', 13: 'I-PP', 14: 'B-CONJP', 15: 'I-CONJP', 16: 'B-INTJ', 17: 'I-INTJ', 18: 'I-SBAR', 19: 'B-UCP', 20: 'I-UCP', 21: 'B-LST'}
+            
         y_pred = []
         default = self.default_param()
 
@@ -315,8 +325,6 @@ class HMM:
             y_pred_num.append(y1)
             y_pred_label = []
 
-            # T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'S', 9: 'B-SBAR', 10: 'I-VP', 11: 'I-ADVP', 12: 'B-PRT', 13: 'I-PP', 14: 'B-CONJP', 15: 'I-CONJP', 16: 'B-INTJ', 17: 'I-INTJ', 18: 'I-SBAR', 19: 'B-UCP', 20: 'I-UCP', 21: 'B-LST'}
-            T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'S', 4:'B-positive', 5:'I-positive', 6:'B-negative', 7:'I-negative'}
             for i in range(len(y_pred_num) -1, -1, -1):
                 y = T_dict[y_pred_num[i]]
                 y_pred_label.append(y)
@@ -334,38 +342,57 @@ class HMM:
 
 
 if __name__=="__main__":
-    d = Set()
-    d.set_training('./SG/train')
-    hmm = HMM(d)
+    if len(sys.argv < 3):
+        print("Make sure at least python 3.8 is installed")
+        print("Run the file in this format")
+        print("python part4.py [dataset] [mode]")
+        print("dataset can be EN,SG,CN") # sys.argv[1]
+        print("mode can be train or predict") # sys.argv[2]
 
-    # 1. prepare x /EN/dev.in
-    print("Setting word list")
-    hmm.set_word_list("./SG/dev.in")
-    
-    # 2. em param and trans param
-    print("Loading emission and transition parameters")
-    dfx = pd.read_pickle("./SG/params.pkl")
-    dfy = pd.read_pickle("./SG/y_params.pkl")
-    hmm.set_params(dfx, dfy)
+    else:
+        dataset = sys.argv[1]
+        mode = sys.argv[2]
 
-    # 3. Transform em and tr param for ease of access
-    print("Creating dictionary of parameters")
-    # hmm.convert_param()
+        d = Set()
+        d.set_training('./{}/train'.format(dataset))
+        hmm = HMM(d)
+        hmm.dataset = dataset
 
-    # # 3.a Saving Params
-    # with open("./SG/em_dic.p", "wb") as fp:
-    #     pickle.dump(hmm.em_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        # 1. prepare x /EN/dev.in
+        print("Setting word list")
+        hmm.set_word_list("./{}/dev.in".format(dataset))
+        
+        # 2. em param and trans param
+        print("Loading emission and transition parameters")
+        try:
+            dfx = pd.read_pickle("./{}/params.pkl".format(dataset))
+            dfy = pd.read_pickle("./{}/y_params.pkl".format(dataset))
+            hmm.set_params(dfx, dfy)
+        except:
+            print("Parameters file not found, make sure to run part2.py and part3.py in train mode to generate the parameters file")
 
-    # with open("./SG/tr_dic.p", "wb") as fp:
-    #     pickle.dump(hmm.tr_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        if mode == "train":
+            # 3. Transform em and tr param for ease of access
+            print("Creating dictionary of parameters")
+            hmm.convert_param()
 
-    # 3.b Loading params
-    with open("./SG/em_dic.p", "rb") as fp:
-        hmm.em_param_dic = pickle.load(fp)
+            # 3.a Saving Params
+            with open("./{}/em_dic.p".format(dataset), "wb") as fp:
+                pickle.dump(hmm.em_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open("./SG/tr_dic.p", "rb") as fp:
-        hmm.tr_param_dic = pickle.load(fp)
+            with open("./{}/tr_dic.p".format(dataset), "wb") as fp:
+                pickle.dump(hmm.tr_param_dic, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        elif mode == "predict":
+            # 3.b Loading params
+            with open("./{}/em_dic.p".format(dataset), "rb") as fp:
+                hmm.em_param_dic = pickle.load(fp)
 
-    # 4. Run viterbi top 3 best
-    print("Running viterbi k best")
-    y_rped = hmm.viterbi_kbest()
+            with open("./{}/tr_dic.p".format(dataset), "rb") as fp:
+                hmm.tr_param_dic = pickle.load(fp)
+
+            # 4. Run viterbi top 3 best
+            print("Running viterbi k best with k=3")
+            filename = "./{}/dev.p4.out".format(dataset)
+            y_pred = hmm.viterbi_kbest(filename, 3)
+            print("Output has been saved to {}".format(filename))
