@@ -160,9 +160,12 @@ class HMM:
 
     def convert_param(self):
         # Convert DataFrame to Dictionary
-        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP',
-             'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-        # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T_temp = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+
+        if self.dataset == "EN":
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
 
         # Convert transition param
         t_param_dic = {}
@@ -179,10 +182,6 @@ class HMM:
         e_param_dic = {}
         words = self.emission_params['words'].values
         for w in words:
-            # to skip 'S'
-            T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP',
-                      'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-            # T_temp = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
             for tag in T_temp:
                 key = (w, tag)
                 row = self.emission_params.loc[self.emission_params['words'] == w]
@@ -192,9 +191,9 @@ class HMM:
         self.em_param_dic = e_param_dic
 
     def default_param(self):
-        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP',
-             'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-        # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        if self.dataset == "EN":
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
         default = {}
         for tag in T:
             default[tag] = 0.5 / float(self.count_y(tag) + 0.5)
@@ -204,12 +203,12 @@ class HMM:
         if select==-1:
             select = k-1
         
-        T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
-        T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'S', 4:'B-positive', 5:'I-positive', 6:'B-negative', 7:'I-negative'}
+        T = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
+        T_dict = {0:'O', 1:'B-neutral', 2:'I-neutral', 3:'B-positive', 4:'I-positive', 5:'B-negative', 6:'I-negative'}
 
         if self.dataset == "EN":
-            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
-            T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'S', 9: 'B-SBAR', 10: 'I-VP', 11: 'I-ADVP', 12: 'B-PRT', 13: 'I-PP', 14: 'B-CONJP', 15: 'I-CONJP', 16: 'B-INTJ', 17: 'I-INTJ', 18: 'I-SBAR', 19: 'B-UCP', 20: 'I-UCP', 21: 'B-LST'}
+            T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            T_dict = {0: 'B-NP', 1: 'I-NP', 2: 'B-VP', 3: 'B-ADVP', 4: 'B-ADJP', 5: 'I-ADJP', 6: 'B-PP', 7: 'O', 8: 'B-SBAR', 9: 'I-VP', 10: 'I-ADVP', 11: 'B-PRT', 12: 'I-PP', 13: 'B-CONJP', 14: 'I-CONJP', 15: 'B-INTJ', 16: 'I-INTJ', 17: 'I-SBAR', 18: 'B-UCP', 19: 'I-UCP', 20: 'B-LST'}
 
         y_pred = []
         default = self.default_param()
@@ -346,7 +345,7 @@ class HMM:
             weights.append((40 - i) ** 2 * 0.5)
 
         for select in range(k):
-            print(select)
+            # print(select)
             y.append(self.viterbi_kbest(k, select))
 
         for m in range(len(y[0])):
