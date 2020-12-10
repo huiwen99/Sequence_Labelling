@@ -246,8 +246,3 @@ if __name__=="__main__":
 
             print("Running viterbi")
             hmm.viterbi2("./{}/dev.in".format(dataset), './{}/dev.p3.out'.format(dataset))
-
-d = Set()
-d.set_training('./SG/train')
-
-hmm = HMM(d)

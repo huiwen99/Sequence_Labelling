@@ -88,10 +88,10 @@ class HMM:
                 some_tag = 'S'
                 for j in range(i, len(words) - 1):
                     a_probs = self.max_a(some_tag)
-                    b_probs = self.max_b(words[j+1])
+                    b_probs = self.max_b(words[j + 1])
                     ab = []
                     for k, l in zip(a_probs, b_probs):
-                        ab.append(k*l)
+                        ab.append(k * l)
                     pi_j = pi_j * max(ab)
                     pos = np.argmax(ab)
                     new_tag = self.tags[pos]
@@ -100,7 +100,7 @@ class HMM:
                     some_tag = new_tag
                     scores.append(pi_j)
 
-                    if words[j+2] == '\n':
+                    if words[j + 2] == '\n':
                         last_score = max(self.max_a(some_tag))
                         pi_n1 = pi_j * last_score
                         scores.append(pi_n1)
@@ -141,12 +141,12 @@ class HMM:
 
         for data in content.split("\n"):
             if data == "":
-                if w!=[]:
+                if w != []:
                     words.append(w)
                     w = []
             else:
                 w.append(data)
-        
+
         # words = np.array(words)
         # df = pd.DataFrame({'words': words}, columns=['words'])
         # self.words = df.words.unique()
@@ -160,7 +160,8 @@ class HMM:
 
     def convert_param(self):
         # Convert DataFrame to Dictionary
-        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP',
+             'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
         # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
 
         # Convert transition param
@@ -179,7 +180,8 @@ class HMM:
         words = self.emission_params['words'].values
         for w in words:
             # to skip 'S'
-            T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+            T_temp = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'B-SBAR', 'I-VP', 'I-ADVP',
+                      'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
             # T_temp = ['O', 'B-neutral', 'I-neutral', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
             for tag in T_temp:
                 key = (w, tag)
@@ -190,11 +192,12 @@ class HMM:
         self.em_param_dic = e_param_dic
 
     def default_param(self):
-        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP', 'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
+        T = ['B-NP', 'I-NP', 'B-VP', 'B-ADVP', 'B-ADJP', 'I-ADJP', 'B-PP', 'O', 'S', 'B-SBAR', 'I-VP', 'I-ADVP',
+             'B-PRT', 'I-PP', 'B-CONJP', 'I-CONJP', 'B-INTJ', 'I-INTJ', 'I-SBAR', 'B-UCP', 'I-UCP', 'B-LST']
         # T = ['O', 'B-neutral', 'I-neutral', 'S', 'B-positive', 'I-positive', 'B-negative', 'I-negative']
         default = {}
         for tag in T:
-            default[tag] = 0.5/float(self.count_y(tag) + 0.5)
+            default[tag] = 0.5 / float(self.count_y(tag) + 0.5)
         return default
 
     def viterbi_kbest(self, k=3, select=-1):
@@ -227,17 +230,17 @@ class HMM:
                         score = -1000000000
                     else:
                         score = m.log(1.0 * self.em_param_dic[k_em] * self.tr_param_dic[k_tr])
-                
+
                 # If k_em doesnt exist in the dictionary asa key, use default param
                 else:
                     if self.tr_param_dic[k_tr] != 0:
                         score = m.log(1.0 * default[T[s]] * self.tr_param_dic[k_tr])
                     else:
                         score = -1000000000
-                    
+
                 temp.append(['S', s, 0, score])
                 n = ['S', s, 0, -1000000000]
-                for i in range(k-1):
+                for i in range(k - 1):
                     temp.append(n)
 
                 temp_f.append(temp)
@@ -246,10 +249,9 @@ class HMM:
             y.append(temp_f)
             temp = []
 
-
             # Forward
-            for i in range(len(x)-1):
-                i = i+1
+            for i in range(len(x) - 1):
+                i = i + 1
                 for s_to in range(len(T)):
                     paths = []
                     scores = []
@@ -260,28 +262,32 @@ class HMM:
                         if len(y[i - 1][s_fr]) == 1:
                             if k_em not in self.em_param_dic:
                                 if self.tr_param_dic[k_tr] != 0:
-                                    score = float(y[i - 1][s_fr][0][3]) + m.log(float(default[T[s_to]])) + m.log(float(self.tr_param_dic[k_tr]))
+                                    score = float(y[i - 1][s_fr][0][3]) + m.log(float(default[T[s_to]])) + m.log(
+                                        float(self.tr_param_dic[k_tr]))
                                 else:
                                     score = -100000000
                             else:
                                 if self.em_param_dic[k_em] == 0 or self.tr_param_dic[k_tr] == 0:
                                     score = float(y[i - 1][s_fr][0][3]) + float(-10000000)
                                 else:
-                                    score = float(y[i - 1][s_fr][0][3]) + m.log(float(self.em_param_dic[k_em])) + m.log(float(self.tr_param_dic[k_tr]))
+                                    score = float(y[i - 1][s_fr][0][3]) + m.log(float(self.em_param_dic[k_em])) + m.log(
+                                        float(self.tr_param_dic[k_tr]))
                             paths.append([s_fr, s_to, 0, score])
-                        
+
                         else:
                             for e in range(len(y[i - 1][s_fr])):
                                 if k_em not in self.em_param_dic:
                                     if self.tr_param_dic[k_tr] != 0:
-                                        score = float(y[i - 1][s_fr][e][3]) + m.log(float(default[T[s_to]])) + m.log(float(self.tr_param_dic[k_tr]))
+                                        score = float(y[i - 1][s_fr][e][3]) + m.log(float(default[T[s_to]])) + m.log(
+                                            float(self.tr_param_dic[k_tr]))
                                     else:
                                         score = -1000000000
                                 else:
                                     if self.em_param_dic[k_em] == 0 or self.tr_param_dic[k_tr] == 0:
                                         score = float(y[i - 1][s_fr][e][3]) + float(-10000000)
                                     else:
-                                        score = float(y[i - 1][s_fr][e][3]) + m.log(float(self.em_param_dic[k_em])) + m.log(float(self.tr_param_dic[k_tr]))
+                                        score = float(y[i - 1][s_fr][e][3]) + m.log(
+                                            float(self.em_param_dic[k_em])) + m.log(float(self.tr_param_dic[k_tr]))
                                 paths.append([s_fr, s_to, e, score])
 
                     # sort top 3
@@ -300,9 +306,9 @@ class HMM:
                     layer_f = len(x)
                     if self.tr_param_dic[(T[s_fr], 'S')] != 0:
                         if layer_f == 1:
-                            score = float(y[layer_f-1][s_fr][0][3]) + m.log(float(self.tr_param_dic[(T[s_fr], 'S')]))
+                            score = float(y[layer_f - 1][s_fr][0][3]) + m.log(float(self.tr_param_dic[(T[s_fr], 'S')]))
                         else:
-                            score = float(y[layer_f-1][s_fr][e][3]) + m.log(float(self.tr_param_dic[(T[s_fr], 'S')]))
+                            score = float(y[layer_f - 1][s_fr][e][3]) + m.log(float(self.tr_param_dic[(T[s_fr], 'S')]))
                     paths.append([s_fr, 'S', e, score])
 
             # sort top 3
@@ -316,7 +322,7 @@ class HMM:
             y1 = top_three[select][0]
             j = top_three[select][2]
             y_pred_num = []
-            for i in range(len(x) -1, 0, -1):
+            for i in range(len(x) - 1, 0, -1):
                 y2 = y1
                 y_pred_num.append(y2)
                 y1 = y[i][y2][j][0]
@@ -337,7 +343,7 @@ class HMM:
         y_predict = []
         weights = []
         for i in range(k):
-            weights.append((40-i)**2*0.5)
+            weights.append((40 - i) ** 2 * 0.5)
 
         for select in range(k):
             print(select)
@@ -350,8 +356,8 @@ class HMM:
                 for j in range(k):
                     if y[j][m][i] not in temp:
                         temp[y[j][m][i]] = 0
-                    temp[y[j][m][i]]=temp[y[j][m][i]] + weights[j]
-                data=sorted(temp.items(), key=lambda x: x[1], reverse=True)
+                    temp[y[j][m][i]] = temp[y[j][m][i]] + weights[j]
+                data = sorted(temp.items(), key=lambda x: x[1], reverse=True)
                 most = data[0][0]
                 ym_predict.append(most)
             y_predict.append(ym_predict)

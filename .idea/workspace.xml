@@ -40,6 +40,11 @@
     <property name="full.screen.before.presentation.mode" value="false" />
     <property name="last_opened_file_path" value="$USER_HOME$/OneDrive - Singapore University of Technology and Design/SUTD/Term 6/Foundations of Cybersecurity/CTF project/CTF_Draft" />
   </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Doreen\GitStuff\50.007_ML_Project\EN" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="part2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="50.007_ML_Project" />
