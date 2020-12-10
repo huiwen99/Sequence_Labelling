@@ -20,6 +20,7 @@ The output file is saved as ```dev.p2.out``` in the respective dataset folder.
 
 ### Part 3
 Part 3 requires the emission parameters from part 2 (which is saved as a pickle file after training).
+
 To train the transition parameters, run the following:
 ```python3 part3.py```
 
@@ -32,6 +33,7 @@ The output file is saved as ```dev.p3.out``` in the respective dataset folder.
 
 ### Part 4
 Part 4 requires the emission parameters from part 2 and the transition parameters from part 3 (which is saved as a pickle file after training).
+
 To convert the parameters to their respective dictionaries, run the following:
 ```python3 part4.py```
 
@@ -45,6 +47,7 @@ The output file is saved as ```dev.p4.out``` in the EN folder.
 
 ### Part 5
 Part 5 requires the emission parameters from part 2 and the transition parameters from part 3 (which is saved as a pickle file after training).
+
 To convert the parameters to their respective dictionaries, run the following (you can skip this step if you have done it in part 4):
 ```python3 part5.py```
 
