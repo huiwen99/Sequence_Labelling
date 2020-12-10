@@ -350,9 +350,8 @@ class HMM:
                     key = (1,T[w])
                     phi_base[key] = self.prev_trans_params[('S',T[w])] * self.em_params[(sentence[1], T[w])]
                     phi[key] = phi_base[key]
-                    phi_args[key] = (key[0], key[1], T[w])
+                    phi_args[key] = ('S', T[w]) #idk this one sigh
             # print(phi)
-            # Get max of this base
 
             # Forward recursive
             for k in range(2, n-2):
@@ -396,8 +395,8 @@ class HMM:
             # Back tracking
             y.append('S')
             # print(phi_args)
-            for i in range(n-2, 0,-1):
-                best_route = phi_args[(i,y[0])]
+            for i in range(n-3, 0,-1):
+                best_route = phi_args[(i+1,y[0])]
                 y.insert(0, best_route[1])
                 # print(y)
             y_pred.append(y)
