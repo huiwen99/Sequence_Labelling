@@ -215,7 +215,7 @@ if __name__=="__main__":
     if len(sys.argv) < 3:
         print("Make sure at least python 3.8 is installed")
         print("Run the file in this format")
-        print("python part2.py [dataset] [mode]")
+        print("python part3.py [dataset] [mode]")
         print("dataset can be EN,SG,CN") # sys.argv[1]
         print("mode can be train or predict") # sys.argv[2]
 

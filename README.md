@@ -39,14 +39,12 @@ The output file is saved as ```dev.p3.out``` in the respective dataset folder.
 Part 4 requires the emission parameters from part 2 and the transition parameters from part 3 (which is saved as a pickle file after training).
 
 To convert the parameters to their respective dictionaries, run the following:
-```python3 part4.py [dataset] train```  
-Where `[dataset]` can be EN, SG, or CN.
+```python3 part4.py EN train``` 
 
 The dictionary for emission parameters is saved as ```em_dic.p``` and the dictionary for transition parameters is saved as ```tr_dic.p```.
 
 To output the 3rd best sequence, run the following:
-```python3 part4.py [dataset] predict```  
-Where `[dataset]` can be EN, SG, or CN.
+```python3 part4.py EN predict```  
 
 The output file is saved as ```dev.p4.out``` in the EN folder.
 
@@ -55,13 +53,11 @@ The output file is saved as ```dev.p4.out``` in the EN folder.
 Part 5 requires the emission parameters from part 2 and the transition parameters from part 3 (which is saved as a pickle file after training).
 
 To convert the parameters to their respective dictionaries, run the following (you can skip this step if you have done it in part 4):
-```python3 part5.py [dataset] train```  
-Where `[dataset]` can be EN, SG, or CN.
+```python3 part5.py EN train``` 
 
 The dictionary for emission parameters is saved as ```em_dic.p``` and the dictionary for transition parameters is saved as ```tr_dic.p```.
 
 To output the 3rd best sequence, run the following:
-```python3 part5.py [dataset] predict```  
-Where `[dataset]` can be EN, SG, or CN.
+```python3 part5.py EN predict```  
 
 The output file is saved as ```dev.p5.out``` in the EN folder.
