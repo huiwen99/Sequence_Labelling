@@ -391,9 +391,14 @@ if __name__=="__main__":
         hmm = HMM(d)
         hmm.dataset = dataset
 
-        # 1. prepare x /EN/dev.in
-        print("Setting word list")
-        hmm.set_word_list("./{}/dev.in".format(dataset))
+        if mode == "test":
+            # 1. prepare x ./test.in
+            print("Setting word list")
+            hmm.set_word_list("./{}/test.in".format(dataset))
+        else:
+            # 1. prepare x ./dev.in
+            print("Setting word list")
+            hmm.set_word_list("./{}/dev.in".format(dataset))
         
         # 2. em param and trans param
         print("Loading emission and transition parameters")
@@ -427,5 +432,19 @@ if __name__=="__main__":
             # 4. Do part 5
             print("Doing part 5 with k=3")
             filename = "./{}/dev.p5.out".format(dataset)
+            y_pred_part5 = hmm.part_5(3, filename)
+            print("Output is saved to {}".format(filename))
+
+        elif mode == "test":
+            # 3.b Loading params
+            with open("./{}/em_dic.p".format(dataset), "rb") as fp:
+                hmm.em_param_dic = pickle.load(fp)
+
+            with open("./{}/tr_dic.p".format(dataset), "rb") as fp:
+                hmm.tr_param_dic = pickle.load(fp)
+
+            # 4. Do part 5
+            print("Doing part 5 with k=3")
+            filename = "./{}/test.p5.out".format(dataset)
             y_pred_part5 = hmm.part_5(3, filename)
             print("Output is saved to {}".format(filename))
